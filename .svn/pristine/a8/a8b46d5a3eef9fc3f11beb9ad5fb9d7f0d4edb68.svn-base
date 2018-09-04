@@ -1,0 +1,1106 @@
+<template>
+  <section class="index">
+      <!-- 首页 -->
+    <div class="nav-con" v-show="navSelect == 0">
+        <div class="top-con">
+            <img class="top-con-bg" mode="widthFix" src="../../common/img/icon_home_bg.png" />
+            <div class="swiper-con">
+                <swiper class="swiper" duration="300" :indicator-dots="true" :style="{height: swiperHeight}">
+                    <block v-for="(v, index) in imgUrls" :key="index">
+                        <swiper-item class="swiper-item">
+                        <image @load="imgLoad" :src="v" class="slide-image" mode="widthFix"/>
+                        </swiper-item>
+                    </block>
+                </swiper>
+            </div>
+        </div>
+        <div class="coupon-con">
+            <div class="coupon-item" v-for="(v, index) in couponList" :key="index">
+                <div class="coupon-item-left">
+                    <img class="coupon-icon" :src="v.logo_photo" mode="aspectFill">
+                </div>
+                <div class="coupon-item-right">
+                    <div class="coupon-info-con">
+                        <div class="coupon-title">
+                            <text class="text-hidden">{{v.coupon_name}}</text>
+                            <text class="distance">{{v.distance}}</text>
+                        </div>
+                        <div class="shop-name">
+                            {{v.shop_name}}
+                        </div>
+                    </div>
+                    <div class="btn-con">
+                        <div class="unit">￥<text class="price">{{v.sale_price}}</text></div>
+                        <text class="btn-buy" @click="panelChange(v)">
+                            购买
+                        </text>
+                    </div>
+                </div>
+                <div class="left-circle"></div>
+                <div class="right-circle"></div>
+            </div>
+        </div>
+    </div>
+    <!-- 扫一扫 -->
+    <div class="nav-con scan-bg" v-show="navSelect == 1">
+        <div class="top-con">
+            <img class="top-con-bg" src="../../common/img/icon_scavenging_bg.png" mode="widthFix">
+            <div class="scan-con">
+                <img class="scan-img" src="../../common/img/icon_scanning.png" mode="widthFix" @click="clickScan">
+                <text>扫描商家台卡二维码</text>
+            </div>
+        </div>
+        <div class="detail">
+            <div class="title">【使用说明】</div>
+            <div class="detail-text"><div class="dolt"></div>扫描指定的超盟金服台卡二维码</div>        
+            <div class="detail-text"><div class="dolt"></div>使用您已购买的优惠券</div>        
+            <div class="detail-text"><div class="dolt"></div>点击付款完成用券操作</div>        
+        </div>
+
+    </div>
+
+    <!-- 我的 -->
+    <div class="nav-con" v-show="navSelect == 2">
+        <div class="top-con">
+            <img class="top-con-bg" mode="widthFix" src="../../common/img/icon_me_bg.png" />
+            <div class="user-info">
+                <div class="outter">
+                  <img  mode="aspectFill" class="user-img" :src="userInfo.head_img">
+                </div>
+                <div class="user-name">
+                    {{userInfo.nickname}}
+                </div>
+                <div class="user-uid">
+                    UID: {{userInfo.uid}}
+                </div>
+            </div>
+        </div>
+
+        <div class="all-con">
+            <div class="account-info">
+                <div class="balance-con">
+                    <div class="account-balance">
+                        <div class="num">{{userInfo.amount}}</div>
+                        <div class="text">账户余额(元)</div>
+                    </div>
+                    <div class="red-bag">
+                        <div class="num">{{userInfo.red_packet}}</div>
+                        <div class="text">红包(元)</div>
+                    </div>
+                </div>
+                <div class="btn-con">
+                    <div class="btn-detail" @click="jump2CapitalDetails">
+                        消费明细
+                    </div>
+                    <div class="btn-recharge" @click="jump2Recharge">
+                        充值
+                    </div>
+                </div>
+            </div>
+
+            <div class="cell-group">
+                <div class="cell" v-for="(v, index) in cellList" :key="index" @click="jump2(v.link)">
+                    <div class="cell-left">
+                        <img class="cell-icon" mode="widthFix" v-if="v.icon == 1" src="../../common/img/icon_my_order.png">
+                        <img class="cell-icon" mode="widthFix" v-if="v.icon == 2" src="../../common/img/icon_coupon.png">
+                        <img class="cell-icon" mode="widthFix" v-if="v.icon == 3" src="../../common/img/icon_activity.png">
+                        <img class="cell-icon" mode="widthFix" v-if="v.icon == 4" src="../../common/img/icon_contact_us.png">
+                        <text>{{v.title}}</text>
+                    </div>
+                    <div class="cell-right">
+                        <text>{{v.content}}</text>
+                        <img class="arrow" mode="widthFix" src="../../common/img/icon_arrow.png">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+      <div class="nav-item" @click="navChange(0)">
+        <img class="nav-icon" mode="widthFix" src="../../common/img/icon_home_normal.png" v-show="navSelect != 0"/>
+        <img class="nav-icon" mode="widthFix" src="../../common/img/icon_home_press.png" v-show="navSelect == 0"/> 
+        <text class="nav-text" :class="{'nav-text--selected': navSelect == 0}">首页</text>  
+      </div>
+      <div class="nav-item nav-item-center"></div>
+      <button open-type="getUserInfo" class="nav-item" @getuserinfo="navChange(2, $event)">
+        <img class="nav-icon" mode="widthFix" src="../../common/img/icon_me_normal.png" v-show="navSelect != 2"/> 
+        <img class="nav-icon" mode="widthFix" src="../../common/img/icon_me_press.png" v-show="navSelect == 2"/> 
+        <text class="nav-text" :class="{'nav-text--selected': navSelect == 2}">我的</text>  
+      </button>
+      <button open-type="getUserInfo" class="scan-item" @getuserinfo="navChange(1, $event)">
+        <div class="btn-scan">
+            <img class="btn-scan-icon" src="../../common/img/icon_scan.png" mode="widthFix">
+        </div>
+        <text class="btn-scan-text" :class="{'btn-scan-text--selected': navSelect == 1}">付款</text>
+      </button>
+    </div>
+
+    <!-- 弹窗 -->
+    <div catchtouchmove='true' class="mask animated" @click="panelChange" :class="{'fadeOut': panelShow == 1, 'fadeIn': panelShow == 2}"></div>
+    <div class="bottom-panel animated" :class="{'fadeOutDown': panelShow == 1, 'fadeInUp': panelShow == 2}" catchtouchmove='true'>
+      <div class="shop-icon-outter"> 
+        <div class="shop-icon-inner">
+            <img :src="couponObject.logo_photo" mode="aspectFill" class="shop-icon">
+        </div>
+      </div>
+      <div class="close-con">
+        <img src="../../common/img/icon_close.png" mode="widthFix" class="icon-close" @click="panelChange">
+      </div>
+      <div class="cash-con">
+        <div class="list-cell">
+          <div class="list-cell-left">
+            <div class="list-cell-img">
+              <img :src="couponObject.g_photo" mode="aspectFill">
+            </div>
+            <div class="list-cell-content">
+              <div class="coupon-title">
+                {{couponObject.coupon_name}}
+              </div>
+              <div class="coupon-price">
+                ￥{{couponObject.sale_price}}<text class="old-price">￥{{couponObject.values}}</text>
+              </div>
+            </div>
+          </div>
+          <div class="list-cell-right">
+            <div class="add-con">
+              <img mode="widthFix" src="../../common/img/icon_reduce_press.png" @click="reduceCoupon">
+              <text>{{couponNum}}</text>
+              <img mode="widthFix" src="../../common/img/icon_add_to.png"  @click="addCoupon">
+            </div>
+            <div class="coupon-num">
+              仅剩{{couponObject.remaining_num}}张
+            </div>
+          </div>
+        </div>
+
+        <div class="cash-con-footer">
+            <div class="cash-con-footer-left">
+                <img mode="widthFix" src="../../common/img/icon_shopping_cart.png"> 
+                <text class="dolt">{{couponNum}}</text>
+            </div>
+            <div class="cash-con-footer-right">
+                <div class="price">
+                    应付合计: <text><text class="unit">￥</text>{{sum}}</text>
+                </div>
+                <button open-type="getUserInfo" class="btn-pay" @getuserinfo="toPay">
+                    去支付
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script>
+export default {
+  async mounted() {
+    this.navSelect = 0;
+    try {
+      let address = await this.$wx.getLocation();
+      this.longitude = address.longitude;
+      this.latitude = address.latitude;
+      wx.setStorageSync("longitude", address.longitude);
+      wx.setStorageSync("latitude", address.latitude);
+    } catch (error) {
+      this.longitude = "114.053840";
+      this.latitude = "22.535670";
+    } finally {
+      await Promise.all([this.getBanner(), this.getData()]);
+    }
+  },
+  async onReachBottom() {
+    await this.getData();
+  },
+  async onPullDownRefresh() {
+    this.page = 1;
+    await this.getData();
+    wx.stopPullDownRefresh();
+  },
+  data() {
+    return {
+      longitude: "114.053840",
+      latitude: "22.535670",
+      imgUrls: [],
+      panelShow: 0,
+      cellList: [
+        {
+          title: "我的订单",
+          icon: "1",
+          content: "",
+          link: "/pages/order/list/main"
+        },
+        {
+          title: "优惠券",
+          icon: "2",
+          content: "",
+          link: "/pages/coupon/list/main"
+        },
+        {
+          title: "热门活动",
+          icon: "3",
+          content: "",
+          link: "/pages/activity/list/main"
+        },
+        {
+          title: "联系我们",
+          icon: "4",
+          content: "400-135-2288",
+          link: ""
+        }
+      ],
+      swiperHeight: "",
+      navSelect: 0,
+      page: 1,
+      userInfo: {
+        head_img: "",
+        nickname: "",
+        uid: "",
+        amount: "0.00",
+        red_packet: "0.00"
+      },
+      couponList: [],
+      couponObject: {
+        shop_id: "",
+        shop_sub_id: "",
+        cash_coupon_id: "",
+        coupon_name: "",
+        sale_price: "",
+        values: 0,
+        remaining_num: 0,
+        logo_photo: "",
+        g_photo: ""
+      },
+      couponNum: 1
+    };
+  },
+  computed: {
+    sum() {
+      //兼容精度问题
+      return this.couponNum * 100 * this.couponObject.sale_price * 100 / 10000;
+    }
+  },
+  methods: {
+    async getData() {
+      let data = await this.$http.post("/user/nearbrandcoupons", {
+        longitude: this.longitude,
+        latitude: this.latitude,
+        page: this.page,
+        page_num: 5
+      });
+
+      if (data.coupons_info.length > 0) {
+        if (this.page == 1) {
+          this.couponList = data.coupons_info;
+        } else {
+          const offset = this.couponList.length - this.page * this.page_num;
+          if (offset == 0) {
+            this.couponList = this.couponList.concat(data.coupons_info);
+          } else {
+            const arr = this.couponList.slice(
+              0,
+              this.page * (this.page_num - 1)
+            );
+            this.couponList = this.couponList.concat(arr);
+          }
+        }
+        this.page++;
+      }
+    },
+    async getBanner() {
+      try {
+        const banners = await this.$http.post("/user/fissionlist");
+        this.imgUrls = banners.map(item => {
+          return item.act_banner_img;
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async getMoney() {
+      let data = await this.$http.post("");
+    },
+    imgLoad(event) {
+      const imgHeight = event.target.height;
+      const imgWidth = event.target.width;
+      const swiperWidth = 351;
+      this.swiperHeight = 2 * (imgHeight * swiperWidth / imgWidth) + "rpx";
+    },
+    async navChange(value, event) {
+      await this.$util.userLogin(event);
+      this.userInfo = wx.getStorageSync("userInfo");
+      this.navSelect = value;
+    },
+    panelChange(v) {
+      this.panelShow = this.panelShow == 0 ? 2 : this.panelShow == 1 ? 2 : 1;
+      console.log(this.panelShow);
+      this.couponNum = 1;
+      if (v) {
+        this.couponObject = v;
+      }
+    },
+    addCoupon() {
+      if (this.couponObject.remaining_num <= this.couponNum) {
+        wx.showToast({
+          title: "不能超过剩余数量",
+          icon: "none"
+        });
+        return;
+      }
+      this.couponNum++;
+    },
+    reduceCoupon() {
+      if (this.couponNum <= 1) {
+        wx.showToast({
+          title: "购买数量不能小于1",
+          icon: "none"
+        });
+        return;
+      }
+      this.couponNum--;
+    },
+    jump2(link) {
+      if (link != "") {
+        wx.navigateTo({
+          url: link
+        });
+      } else {
+        this.callPhone("400-135-2288");
+      }
+    },
+    jump2CapitalDetails() {
+      wx.navigateTo({
+        url: "/pages/capitalDetails/main"
+      });
+    },
+    jump2Recharge() {
+      wx.navigateTo({
+        url: "/pages/recharge/rechargePage/main"
+      });
+    },
+    callPhone(phone) {
+      wx.makePhoneCall({
+        phoneNumber: phone
+      });
+    },
+    async clickScan() {
+      let data = await this.$wx.scanCode();
+      wx.navigateTo({
+        url: `/pages/pay/payment/main?url=${data.result}`
+      });
+    },
+    async toPay(event) {
+      await this.$util.userLogin(event);
+      this.userInfo = wx.getStorageSync("userInfo");
+      const result = await this.$http.post("/user/paycashcouponsorder", {
+        shop_id: this.couponObject.shop_id,
+        shop_sub_id: this.couponObject.sub_id,
+        cash_coupon_id: this.couponObject.id,
+        sale_price: this.sum,
+        num: this.couponNum,
+        g_photo: this.couponObject.g_photo,
+        shop_name: this.couponObject.shop_name,
+        coupon_name: this.couponObject.coupon_name
+      });
+
+      if(result.pay_status == 1) { //支付完成
+        if(result.pay_type == 1) {
+          //微信支付
+        }else if(result.pay_type == 3){//余额支付
+          wx.showToast({
+            title: '购买成功',
+            icon: 'none'
+          })
+          wx.navigateTo({
+            url: '/pages/pay/paySuccess/main'
+          })
+        }
+      }
+
+    }
+  }
+};
+</script>
+
+<style lang="scss">
+@import "../../common/scss/base.scss";
+page {
+  height: 100%;
+}
+.index {
+  background: $bg-color;
+  height: 100%;
+  .top-con {
+    position: relative;
+    .top-con-bg {
+      width: 100%;
+      display: block;
+    }
+    .swiper-con {
+      position: absolute;
+      width: 351px;
+      left: 12px;
+      top: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      .swiper {
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .slide-image {
+        width: 100%;
+        display: block;
+        border-radius: 10px;
+      }
+    }
+  }
+  /* 优惠券列表 */
+  .coupon-con {
+    margin-top: 20px;
+    padding-bottom: 80px;
+    background: $bg-color;
+    .coupon-item {
+      background: #fff;
+      width: 339px;
+      margin-left: 18px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      border-radius: 4px;
+      @include shadow;
+      padding: 20px 30px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      .coupon-item-left {
+        flex: 3;
+        text-align: center;
+        .coupon-icon {
+          width: 80px;
+          height: 80px;
+        }
+      }
+      .coupon-item-right {
+        flex: 7;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        padding-left: 30px;
+        position: relative;
+        &::after {
+          content: " ";
+          width: 1px;
+          height: 50px;
+          position: absolute;
+          background: $bg-color;
+          left: 8px;
+          top: 50%;
+          margin-top: -25px;
+        }
+        .coupon-info-con {
+          width: 100%;
+          .coupon-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text {
+              font-size: 16px;
+              color: $text-normal-color;
+              font-weight: 600;
+            }
+            .text-hidden {
+              width: 140px;
+              @include text-inline;
+            }
+            .distance {
+              font-weight: 400;
+              font-size: 12px;
+              color: $text-sup-color;
+            }
+          }
+          .shop-name {
+            font-size: $main-text-size;
+            margin-top: 5px;
+          }
+        }
+        .btn-con {
+          width: 100%;
+          margin-top: 5px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          .unit {
+            color: $price-color;
+            font-size: $sup-text-size;
+            display: flex;
+            align-items: center;
+            .price {
+              color: $price-color;
+            }
+          }
+          .btn-buy {
+            color: #fff;
+            background: $sup-color;
+            padding: 3px 18px;
+            border-radius: 20px;
+            margin-right: 10px;
+          }
+        }
+      }
+      .left-circle {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        margin-top: -8px;
+        background: $bg-color;
+      }
+      .right-circle {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        position: absolute;
+        right: -8px;
+        top: 50%;
+        margin-top: -8px;
+        background: $bg-color;
+      }
+    }
+  }
+
+  /* 我的界面 */
+  .user-info {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .outter {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .user-img {
+        width: 60px;
+        height: 60px;
+      }
+    }
+    .user-name {
+      color: #fff;
+      margin-top: 10px;
+      font-size: $title-text-size;
+    }
+    .user-uid {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 5px;
+    }
+  }
+  .all-con {
+    position: absolute;
+    width: 100%;
+    margin-top: -40px;
+    z-index: 99;
+  }
+
+  .account-info {
+    background: #fff;
+    width: 331px;
+    margin-left: 12px;
+    border-radius: 8px;
+    padding: 10px 10px;
+    .balance-con {
+      display: flex;
+      .account-balance,
+      .red-bag {
+        flex: 1;
+      }
+      .num {
+        color: $text-normal-color;
+        font-size: $title-text-size;
+        text-align: center;
+      }
+      .text {
+        text-align: center;
+        color: $text-sup-color;
+        font-size: $sup-text-size;
+        margin-top: 3px;
+      }
+    }
+    .btn-con {
+      display: flex;
+      padding-top: 10px;
+      margin-top: 10px;
+      border-top: 1px solid $border-color;
+      .btn-detail,
+      .btn-recharge {
+        flex: 1;
+        text-align: center;
+      }
+      .btn-detail {
+        color: $theme-color;
+        font-size: $main-text-size;
+      }
+      .btn-recharge {
+        color: $sup-color;
+        font-size: $main-text-size;
+      }
+    }
+  }
+  .cell-group {
+    margin-top: 15px;
+    padding: 0px 12px;
+    background: #fff;
+    .cell {
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid $border-color;
+      &:last-child {
+        border-bottom: 0px;
+      }
+      .cell-left {
+        display: flex;
+        align-items: center;
+        .cell-icon {
+          width: 16px;
+          height: 16px;
+        }
+        text {
+          color: $text-normal-color;
+          font-size: $main-text-size;
+          margin-left: 10px;
+        }
+      }
+      .cell-right {
+        display: flex;
+        align-items: center;
+        .arrow {
+          width: 8px;
+        }
+        text {
+          color: $text-sup-color;
+          font-size: $main-text-size;
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+
+  /* 扫一扫 */
+  .scan-bg {
+    background: #fff;
+    height: 100%;
+  }
+  .top-con {
+    position: relative;
+    .top-con-bg {
+      width: 100%;
+    }
+    .scan-con {
+      width: 100%;
+      height: 100%;
+      top: 0px;
+      left: 0px;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      img {
+        width: 120px;
+        height: 120px;
+        margin-top: -40px;
+      }
+      text {
+        color: #fff;
+        margin-top: 20px;
+      }
+    }
+  }
+  .detail {
+    background: #f5f5f5f5;
+    width: calc(100% - 80px);
+    margin-left: 20px;
+    border-radius: 8px;
+    margin-top: 20px;
+    padding: 20px;
+    .detail-text {
+      color: $text-sup-color;
+      font-size: $sup-text-size;
+      padding: 8px 0px;
+      display: flex;
+      align-items: center;
+      margin-left: 6px;
+      .dolt {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #555555;
+        margin-right: 10px;
+      }
+    }
+  }
+
+  /* 底部导航栏 */
+  .bottom-nav {
+    position: fixed;
+    height: 50px;
+    background: #fff;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    display: flex;
+    border-top: 1px solid $border-color;
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 2;
+      line-height: normal;
+      margin: 0px;
+      padding: 0px;
+      background: transparent;
+      border: 1px solid #fff;
+      &::after {
+        display: none;
+      }
+      .nav-icon {
+        width: 20px;
+        height: 20px;
+      }
+      .nav-text {
+        color: $text-sup-color;
+        font-size: $sup-text-size;
+        margin-top: 4px;
+      }
+      .nav-text--selected {
+        color: $theme-color;
+      }
+    }
+    .nav-item-center {
+      flex: 1;
+    }
+    .scan-item {
+      position: absolute;
+      top: -22.5px;
+      left: 50%;
+      padding: 0px;
+      margin: 0px;
+      margin-left: -22.5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: transparent;
+      line-height: normal;
+      overflow: inherit;
+      &::after {
+        display: none;
+      }
+      .btn-scan {
+        width: 45px;
+        height: 45px;
+        padding: 5px;
+        background: #fff;
+        border-radius: 50%;
+        position: relative;
+        @include shadow-top;
+        .btn-scan-icon {
+          display: block;
+          position: absolute;
+          width: 45px;
+          height: 45px;
+        }
+      }
+      .btn-scan-text {
+        color: $text-sup-color;
+        font-size: $sup-text-size;
+      }
+      .btn-scan-text--selected {
+        color: $theme-color;
+      }
+    }
+  }
+
+  /* 底部弹窗 */
+  .mask {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba($color: #000000, $alpha: 0.5);
+    top: 100%;
+    left: 0px;
+    z-index: 998;
+  }
+  .bottom-panel {
+    position: fixed;
+    width: 100%;
+    height: 50%;
+    background: #fff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    bottom: -100%;
+    left: 0px;
+    z-index: 999;
+    .close-con {
+      display: flex;
+      justify-content: flex-end;
+      overflow: hidden;
+      border-top-right-radius: 10px;
+      .icon-close {
+        width: 30px;
+        height: 30px;
+      }
+    }
+    .shop-icon-outter {
+      padding: 6px;
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      margin-left: -40px;
+      background: #fff;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      @include shadow;
+      .shop-icon-inner {
+        overflow: hidden;
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        .shop-icon {
+          width: 76px;
+          height: 76px;
+          display: block;
+        }
+      }
+    }
+    .cash-con {
+      position: absolute;
+      bottom: 0px;
+      top: 70px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      .list-cell {
+        display: flex;
+        width: calc(100% - 20px);
+        padding: 0px 10px;
+        align-items: center;
+        justify-content: space-between;
+        .list-cell-left {
+          display: flex;
+          align-items: center;
+          margin-right: 10px;
+          .list-cell-img {
+            img {
+              width: 80px;
+              height: 80px;
+              display: block;
+              border-radius: 5px;
+            }
+          }
+          .list-cell-content {
+            margin-left: 10px;
+            .coupon-title {
+              font-size: $main-text-size;
+              color: $text-normal-color;
+            }
+            .coupon-price {
+              color: $price-color;
+              margin-top: 10px;
+              .old-price {
+                color: $text-sup-color;
+                text-decoration: line-through;
+                font-size: $sup-text-size;
+                margin-left: 10px;
+              }
+            }
+          }
+        }
+        .list-cell-right {
+          .add-con {
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            img {
+              width: 24px;
+              height: 24px;
+              display: block;
+            }
+            text {
+              color: $text-sup-color;
+              font-size: $main-text-size;
+              margin: 0px 12px;
+            }
+          }
+          .coupon-num {
+            text-align: right;
+            font-size: $sup-text-size;
+            color: $sup-color;
+            margin-top: 10px;
+          }
+        }
+      }
+      .cash-con-footer {
+        display: flex;
+        padding: 10px;
+        align-items: center;
+        justify-content: space-between;
+        .cash-con-footer-left {
+          position: relative;
+          width: 30px;
+          img {
+            width: 20px;
+            height: 20px;
+            display: block;
+          }
+          .dolt {
+            color: #fff;
+            display: inline-block;
+            min-width: 12px;
+            min-height: 12px;
+            padding: 2px;
+            text-align: center;
+            background: $price-color;
+            font-size: 10px;
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            right: 0px;
+          }
+        }
+        .cash-con-footer-right {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: calc(100% - 60px);
+          .price {
+            font-size: $main-text-size;
+            color: $text-normal-color;
+            text {
+              color: $price-color;
+              margin-left: 5px;
+              font-size: 16px;
+              .unit {
+                font-size: 10px;
+              }
+            }
+          }
+          .btn-pay {
+            font-size: $main-text-size;
+            color: #fff;
+            width: 100px;
+            padding: 8px 0px;
+            margin: 0px;
+            text-align: center;
+            @include main-gradients;
+            line-height: normal;
+            border-radius: 20px;
+          }
+        }
+      }
+    }
+  }
+
+  .animated {
+    -webkit-animation-duration: 0.5s;
+    animation-duration: 0.5s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      -webkit-transform: translate3d(0, -100%, 0);
+      transform: translate3d(0, -100%, 0);
+    }
+
+    to {
+      opacity: 1;
+      -webkit-transform: translate3d(0, -200%, 0);
+      transform: translate3d(0, -200%, 0);
+    }
+  }
+
+  @keyframes fadeOutDown {
+    from {
+      opacity: 1;
+      -webkit-transform: translate3d(0, -200%, 0);
+      transform: translate3d(0, -200%, 0);
+    }
+
+    to {
+      opacity: 0;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+    }
+  }
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+    }
+    1% {
+      -webkit-transform: translate3d(0, -100%, 0);
+      transform: translate3d(0, -100%, 0);
+    }
+    100% {
+      opacity: 1;
+      -webkit-transform: translate3d(0, -100%, 0);
+      transform: translate3d(0, -100%, 0);
+    }
+  }
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+      -webkit-transform: translate3d(0, -100%, 0);
+      transform: translate3d(0, -100%, 0);
+    }
+    1% {
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      opacity: 0;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .fadeIn {
+    animation-name: fadeIn;
+  }
+  .fadeOut {
+    animation-name: fadeOut;
+  }
+  .fadeOutDown {
+    animation-name: fadeOutDown;
+  }
+  .fadeInUp {
+    animation-name: fadeInUp;
+  }
+}
+</style>

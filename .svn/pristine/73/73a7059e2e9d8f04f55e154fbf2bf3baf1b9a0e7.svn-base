@@ -1,0 +1,288 @@
+<template>
+  <section class="getRedBag">
+  	<div class="first">
+  			<text class="sendMoney_tips">{{sendMoney}}元</text>
+        <img class="bg" src="../../../common/img/get/img_new_red_envelopes_detailed_rules_of_the_activities.png"  mode="widthFix">
+    </div>
+    <div class="second">
+        <img class="bg" src="../../../common/img/code/img_new_red_envelopes_bg_2.png" mode="widthFix">
+        <div class="input-con">
+            <div class="user-img">
+                <open-data type="userAvatarUrl"></open-data>
+            </div>
+            <div class="user-name">
+            	<open-data type="userNickName"></open-data>
+            </div>
+            <div class="tips">
+                hi，送你一个超盟U品{{sendMoney}}元的红包哦，快来领取吧！
+            </div>
+            <div class="input-cell-single">
+                <input type="text" placeholder="请输入手机号" v-model="phone">
+            </div>
+            <div class="input-cell">
+                <input type="text" placeholder="请输入验证码" v-model="smsCode" >
+                <div class="btn-send" @click="getCode">{{btnSmsText}}</div>
+            </div>
+            <div class="btn-get" @click="getCard">立即领取</div>
+        </div>
+    </div>
+    <div class="third">
+        <img class="bg" src="../../../common/img/code/img_new_red_envelopes_2.png" mode="widthFix">
+        <div class="rule-content">
+            <div class="rule">1.红包仅限超盟U品新用户领取</div>
+            <div class="rule">2.同一手机号、同一微信号视为同一用户</div>
+            <div class="rule">3.红包会在领取成功后48小时内发放入您的账号，您可在超盟U品小程序中查看</div>
+            <div class="rule">4. 最终解释权，归超盟U品所有</div>
+        </div>
+    </div>
+  </section>
+</template>
+
+<script>
+import http from "../../../common/js/http";
+export default {
+	async mounted() {
+	    this.actId = this.$root.$mp.query.act_id;
+	    this.uId = this.$root.$mp.query.uid;
+	    await this.getData();
+	},
+	data() {
+	    return {
+	    	phone:'',
+	    	smsCode: "",
+	      smsFlag: true,
+	      btnSmsText: "获取验证码",
+	    	actId:'',
+	    	uId:'',
+	    	sendMoney:'',
+	    	sId:'',
+	    	Token:''
+	    };
+	},
+	methods:{
+		async getData(){
+			let redBag = await this.$http.post("/user/getredbag", {
+        act_id: this.actId,
+        uid: this.uId,
+      });
+      this.sendMoney = redBag.send_money;
+		},
+		async getCode(){
+			const rex = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/;
+      if (this.phone == "") {
+        wx.showToast({
+          title: "手机号不能为空",
+          icon: "none"
+        });
+        return;
+      }
+      if (!rex.test(this.phone)) {
+        wx.showToast({
+          title: "请输入正确的手机号",
+          icon: "none"
+        });
+        return;
+      }
+      let checkReceive = await this.$http.post("/user/checkreceive", {
+        uid: this.uId,
+        mobile: this.phone,
+      });
+      
+      if(checkReceive.code == 0){
+      	if (this.smsFlag) {
+						//发请求
+		        this.smsFlag = false;
+		        try {
+		          await this.$http.post("/user/sendmsgcode", {
+		            action: 'reg',
+		            mobile: this.phone,
+		          });
+		          let seconds = 60;
+		          this.btnSmsText = seconds + "s";
+		
+		          let timer = setInterval(() => {
+		            seconds--;
+		            if (seconds <= 0) {
+		              this.btnSmsText = "获取验证码";
+		              this.smsFlag = true;
+		              clearInterval(timer);
+		            } else {
+		              this.btnSmsText = seconds + "s";
+		            }
+		          }, 1000);
+		        } catch (error) {
+		          this.smsFlag = true;
+		        }
+		    }
+			}else if(checkReceive.code == 53234){
+						wx.navigateTo({
+		          url: `/pages/newPeople/getSelf/main?act_id=${this.actId}&uid=${this.uId}&phone=${this.phone}`
+		        });
+   		}else{
+						wx.navigateTo({
+		          url: `/pages/newPeople/hasGeted/main?act_id=${this.actId}&uid=${this.uId}&phone=${this.phone}`
+		        });
+			}
+		},
+		async getCard() {
+			const rex = /^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\d{8}$/;
+      if (this.phone == "") {
+        wx.showToast({
+          title: "手机号不能为空",
+          icon: "none"
+        });
+        return;
+      }
+
+      if (!rex.test(this.phone)) {
+        wx.showToast({
+          title: "请输入正确的手机号",
+          icon: "none"
+        });
+        return;
+      }
+      if (this.smsCode == "") {
+        wx.showToast({
+          title: "请输入验证码",
+          icon: "none"
+        });
+        return;
+      }
+			let Card = await this.$http.post("/user/packetreceive", {
+        uid: this.uId,
+        mobile: this.phone,
+        wx_unionid: wx.getStorageSync("uid"),
+        code: this.smsCode,
+        act_id: this.actId
+      });
+      this.sId = Card.token_data.sid;
+      this.Token = Card.token_data.token;
+			wx.navigateTo({
+	      url: `/pages/newPeople/getSuccess/main?act_id=${this.actId}&sid=${this.sId}&token=${this.Token}&phone=${this.phone}`
+	    });
+    },
+	}
+}
+</script>
+
+<style lang="scss">
+@import "../../../common/scss/base.scss";
+.getRedBag{
+	.first, .second, .third {
+    position: relative;
+    .bg{
+    	width: 100%;
+    	display:block;
+    }
+	}
+	.first{
+		.sendMoney_tips{
+			position: absolute;
+			left: 0;
+			top: 30px;
+			font-size: 84px;
+			-webkit-text-stroke: 3px #FFB991; 
+			font-weight: bold;
+			text-align: center;
+			width: 100%;
+			color: #fff;
+		}
+	}
+	.second {
+		.input-con {
+		    width: calc(100% - 40px);
+		    height: 100%;
+		    position: absolute;
+		    background: #fff;
+		    top: 0px;
+		    left: 20px;
+		    padding: 20px 40px;
+		    box-sizing: border-box;
+		    .user-img {
+          margin: 0 auto;
+          width: 44px;
+	        height: 44px;
+	        background: red;
+	        border-radius: 50%;
+	        overflow: hidden;
+        }
+        .user-name {
+            text-align: center;
+            font-size: $normal-text-size;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        .tips {
+            color: $text-sup-color;
+            font-size: $main-text-size;
+            padding: 0 14px;
+            text-align: center;
+            line-height: 18px;
+        }
+        .input-cell-single {
+            border: 1px solid #F27169;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 8px 0px;
+            margin-top: 24px;
+            input {
+		            outline: none;
+		            width: calc(100% - 16px);
+		            border: none;
+		            height: 32px;
+		            margin-left: 8px;
+		        }
+        }
+        .input-cell {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #F27169;
+            border-radius: 4px;
+            margin-top: 20px;
+            input {
+		            outline: none;
+		            border: none;
+		            height: 32px;
+		            margin: 0 8px;
+		            flex: 1;
+		        }
+		        .btn-send {
+		            font-size: $main-text-size;
+		            text-align: center;
+		            background: #F45957;
+		            height: 44px;
+		            line-height: 44px;
+		            color: #fff;
+		            flex: 1;
+		        }
+        }
+        .btn-get {
+            padding: 14px 0px;
+            border-radius: 38px;
+            text-align: center;
+            color: #fff;
+            font-size: $main-text-size;
+            background: linear-gradient(0deg,rgba(244,57,49,1),rgba(252,86,80,1));
+            margin-top: 48px;
+        }
+		}
+	}
+	.third{
+		.rule-content {
+	    position: absolute;
+	    top: 0px;
+	    font-size: $sup-text-size;
+	    color: #36383A;
+	    padding: 48px; 
+	    top: 64px;
+		}
+		.rule-content .rule {
+		    line-height: 24px;
+		    margin-top: 4px;
+		}
+	}
+}
+
+</style>

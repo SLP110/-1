@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/index/main",
+		"pages/pay/payment/main",
+    "pages/bindPhone/main",
+    "pages/coupon/list/main",
+    "pages/activity/list/main",
+    "pages/scan/main",
+    "pages/order/detailOther/main",
+    "pages/order/detail/main",
+    "pages/order/list/main",
+    "pages/coupon/detail/main",
+    "pages/coupon/shopList/main",
+    "pages/coupon/describe/main",
+    "pages/coupon/overdue/main",
+		"pages/pay/paySuccess/main",
+		"pages/recharge/rechargePage/main",
+		"pages/recharge/rechargeSuccess/main",
+		"pages/buySuccess/main",
+		"pages/newPeople/index/main",
+		"pages/newPeople/getRedBag/main",
+		"pages/newPeople/hasGeted/main",
+		"pages/newPeople/getSelf/main",
+		"pages/newPeople/getSuccess/main",
+		"pages/capitalDetails/main"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#6BC2AE",
+    "navigationBarTitleText": "超盟U品",
+    "navigationBarTextStyle": "white",
+    "backgroundTextStyle": "dark"
+  }
+}

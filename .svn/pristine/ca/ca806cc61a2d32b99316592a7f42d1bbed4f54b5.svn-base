@@ -1,0 +1,126 @@
+<template>
+  <section class="rechargeSuccess">
+  	<div class="success_icon">
+  		<img src="../../../common/img/icon_success.png" />
+  	</div>
+  	<div class="recharge_money">
+  		￥<text>{{rechargeSuccessMoney}}</text>
+  	</div>
+  	<div class="recharge_state">
+  		<text>{{rechargeState}}</text>
+  	</div>
+  	<div class="order_details">
+  		<div class="order_list" v-for="(v,index) in orderList" :key="index" >
+  			<div class="order_left">
+	  			<text>{{v.order_name}}</text>
+	  		</div>
+	  		<div class="order_right">
+	  			<text>{{v.order_content}}</text>
+	  		</div>
+  		</div>
+  	</div>
+  	<div class="rechargeOff_btn">完成</div>
+  	<div class="recharge_order">查看充值明细</div>
+  </section>
+</template>
+
+<script>
+export default {
+  	data() {
+	    return {
+	    	rechargeSuccessMoney:"85.00",
+	    	rechargeState:"充值成功",
+	    	orderList: [
+	    		{
+	    			order_name:"支付方式：",
+	    			order_content:"微信支付",
+	    		},
+	    		{
+	    			order_name:"支付金额：",
+	    			order_content:"100.00元",
+	    		},
+	    	],
+	    };
+  	}
+}
+</script>
+
+<style lang="scss">
+@import "../../../common/scss/base.scss";
+.rechargeSuccess{
+	padding: 24px;
+	.success_icon {
+  	margin: 20px auto 10px;
+  	img{
+  		height: 80px;
+  		margin: 0 auto;
+  		display: block;
+  	}
+  }
+  .recharge_money{
+  	color: $theme-color;
+  	font-size: 36px;
+  	display: flex;
+  	justify-content: center;
+  	text{
+  		color: $theme-color;
+  		font-size: 36px;
+  	}
+  }
+  .recharge_state{
+  	display: flex;
+  	justify-content: center;
+  	margin: 10px 0 25px;
+  	text{
+  		color: $text-normal-color;
+  		font-size: $sup-text-size;
+  	}
+  }
+  .order_details{
+  	border-top: 4px dashed #ddd;
+  	padding-top: 10px;
+  	.order_list{
+  		display: flex;
+      justify-content: space-between;
+  		margin-top: 14px;
+  		.order_left{
+  			display: flex;
+  			justify-content: center;
+  			text{
+  				color: $text-sup-color;
+  				font-size: $sup-text-size;
+  			}
+  		}
+  		.order_right{
+  			display: flex;
+  			justify-content: center;
+  			text{
+  				color: $text-normal-color;
+  				font-size: $sup-text-size;
+  			}
+  		}
+  	}
+  }
+  .rechargeOff_btn{
+  	width: 204px;
+  	height: 42px;
+  	@include main-gradients;
+		display: flex;
+    justify-content: center;
+    align-items: center;
+		font-size: $normal-text-size;
+		color: #fff;
+		border-radius: 21px;
+		margin: 80px auto 0;
+  }
+  .recharge_order{
+  	font-size: $sup-text-size;
+  	color: $sup-color;
+  	text-decoration: underline;
+  	display: flex;
+  	justify-content: center;
+  	margin-top: 25px;
+  }
+}
+
+</style>

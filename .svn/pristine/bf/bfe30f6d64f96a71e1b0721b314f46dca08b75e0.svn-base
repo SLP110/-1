@@ -1,0 +1,234 @@
+<template>
+    <section class="order-detail">
+        <div class="goods-info-con">
+            <div class="goods-cell">
+                <img :src="orderInfo.coupon_img" mode="widthFix" class="goods-img">
+                <div class="goods-info">
+                    <div class="goods-title">{{orderInfo.coupon_name}}</div>
+                    <div class="price">
+                        <text>￥{{orderInfo.coupon_price}}</text>
+                        <text>x{{orderInfo.num}}</text>
+                    </div>
+                </div>
+            </div>
+            <div class="status-con">
+                 <div class="status-con-left">
+                    <div class="status">{{orderInfo.statusText}}</div>
+                    <div class="time" v-if="orderInfo.coupon_status == 3 || orderInfo.coupon_status == 6">有效期至{{orderInfo.endtime}}</div>
+                    <!-- 已使用 显示 -->
+                    <div v-if="orderInfo.coupon_status == 5" class="time">使用门店：{{orderInfo.shop_name}}</div>
+                </div>
+                <!-- 过期\退款 显示 -->
+                <div class="status-con-right"  v-if="orderInfo.coupon_status == 3 || orderInfo.coupon_status == 6">
+                    {{ orderInfo.coupon_status == 6 ? '已退款至账户余额' : '订单已过期' }}
+                </div>
+            </div>
+        </div>
+
+        <div class="cell" @click="jump2List">
+            <div class="cell-left">
+                适用门店({{orderInfo.shop_num}})
+            </div>
+            <div class="cell-right">
+                <img class="arrow" src="../../../common/img/icon_arrow.png" mode="widthFix">
+            </div>
+        </div>
+
+        <div class="order-info-con">
+            <div class="title-con">
+                小计<text>￥{{orderInfo.amount}}</text>
+            </div>
+            <div class="price-con">
+                实付款<div class="price"><text>￥</text>{{orderInfo.price}}</div>
+            </div>
+
+            <!-- <div class="order-num">
+                交易流水号：2018080610251000001 <div class="btn-copy">复制</div>
+            </div> -->
+             <div class="order-num">
+                订单编号：{{orderInfo.order_id}} <div class="btn-copy" @click="copyOrderNum">复制</div>
+            </div>
+             <div class="order-num">
+                下单时间：{{orderInfo.finishtime}} 
+            </div>
+        </div>
+    </section>
+</template>
+
+<script>
+export default {
+    async mounted() {
+         this.orderId = this.$root.$mp.query.orderId;
+         this.orderType = this.$root.$mp.query.orderType;
+        await this.getData();
+    },
+  data() {
+    return {
+        orderId: '',
+        orderType: '',
+        orderInfo: {},
+    };
+  },
+  methods: {
+      async getData() {
+          this.orderInfo = {};
+          const data = await this.$http.post('/user/orderdetail', {order_id: this.orderId, order_type: this.orderType});
+          this.orderInfo = data;
+          this.orderInfo.statusText = this.getStatusText(this.orderInfo.coupon_status)
+      },
+      copyOrderNum() {
+          wx.setClipboardData({
+              data: this.orderInfo.order_id,
+              success() {
+                wx.showToast({
+                    title: '复制订单号成功'
+                })
+              }
+          })
+      },
+      jump2List() {
+          wx.navigateTo({
+               url: `/pages/coupon/shopList/main?subId=${this.orderInfo.sub_id}`
+          })
+      },
+      getStatusText(v) {
+          if(v == 1) {
+              return '未付款'
+          }
+          if(v == 2) {
+              return '已取消支付'
+          }
+          if(v == 3) {
+              return '已过期'
+          }
+          if(v == 4) {
+              return '未使用'
+          }
+          if(v == 5) {
+              return '已使用'
+          }
+          if(v == 6) {
+              return '已退款'
+          }
+          if(v == 7) {
+              return '未知状态'
+          }
+      }
+  }
+};
+</script>
+
+<style lang="scss">
+@import "../../../common/scss/base.scss";
+page {
+    background: $bg-color;
+}
+.goods-info-con {
+    padding: 0px 10px;
+    background: #fff;
+    margin-top: 10px;
+    .goods-cell{
+        display: flex;
+        align-items: center;
+        padding: 10px 0px;
+        border-bottom: 1px solid $border-color;
+        .goods-img {
+          width: 60px;
+          height: 60px;
+          display: block;
+        }
+        .goods-info {
+          width: calc(100% - 70px);
+          margin-left: 10px;
+          .goods-title {
+          }
+          .price {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+            text {
+              color: $text-sup-color;
+              font-size: $sup-text-size;
+            }
+          }
+        }
+    }
+    .status-con {
+        padding: 12px 0px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .status-con-left {
+            div {
+                padding: 2px 0px;
+            }
+            .time {
+                color: $text-sup-color;
+                font-size: $sup-text-size;
+            }
+        }
+        .status-con-right {
+            color: $price-color;
+            font-size: $sup-text-size;
+            text-align: right;
+        }
+    }
+}
+.cell {
+    background: #fff;
+    padding: 15px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    .cell-right {
+        .arrow {
+            width: 8px;
+        }
+    }
+}
+.order-info-con {
+    padding: 0px 10px;
+    background: #fff;
+    margin-top: 10px;
+    padding-bottom: 10px;
+    .title-con {
+        border-bottom: 1px solid $border-color;
+        padding: 15px 0px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .price-con {
+        border-bottom: 1px solid $border-color;
+        padding: 15px 0px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        .price {
+            color: $price-color;
+            font-size: $title-text-size;
+            text {
+                color: $price-color;
+            }
+        }
+    }
+    .order-num {
+        color: $text-sup-color;
+        font-size: $sup-text-size;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0px;
+        .btn-copy {
+           color: $text-sup-color;
+           border: 1px solid $border-color;
+           padding: 2px 15px;
+          font-size: $sup-text-size;
+          border-radius: 40px;
+        }
+    }
+}
+</style>
